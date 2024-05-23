@@ -77,17 +77,21 @@ def drawLine(x0, y0, x1, y1):
     error = dx + dy
     
     while True:
+        # if x0 > WIDTH or x0 < 0 or y0 > HEIGHT or y0 < 0: break
+        towards_nothing_x = (sx > 0 and x0 > WIDTH) or (sx < 0 and x0 < 0)
+        towards_nothing_y = (sy > 0 and y0 > HEIGHT) or (sy < 0 and y0 < 0)
+        if towards_nothing_x or towards_nothing_y: break
         casioplot.set_pixel(x0, y0)
         if x0 == x1 and y0 == y1: break
         e2 = 2 * error
         if e2 >= dy:
             if x0 == x1: break
             error = error + dy
-            x0 = x0 + sx
+            x0 += sx
         if e2 <= dx:
             if y0 == y1: break
             error = error + dx
-            y0 = y0 + sy
+            y0 += sy
 
 def update():
     global player_rot
@@ -101,23 +105,27 @@ def update():
 
     prev_x = None
     prev_height = None
+    prev_inview = False
     for node in map_nodes:
         raw_angle = angleRelativeToPlayer(node - player_pos)
         x = int(MIDDLE_X + raw_angle / FOV * WIDTH / 2)
         height = int(heightMultiplier(node, raw_angle) * HEIGHT / 2)
-        
-        if inView(raw_angle):
+        inview = inView(raw_angle)
+
+        if inview:
             on_screen += 1
             on_screen_coords.append(x)
             casioplot.set_pixel(x, MIDDLE_Y)
             for i in range(height):
                 casioplot.set_pixel(x, MIDDLE_Y + i)
                 casioplot.set_pixel(x, MIDDLE_Y - i)
-            if prev_x != None:
-                drawLine(prev_x, MIDDLE_Y + prev_height, x, MIDDLE_Y + height)
-                drawLine(prev_x, MIDDLE_Y - prev_height, x, MIDDLE_Y - height)
+        if prev_x != None and (inview or prev_inview):
+            drawLine(prev_x, MIDDLE_Y + prev_height, x, MIDDLE_Y + height)
+            drawLine(prev_x, MIDDLE_Y - prev_height, x, MIDDLE_Y - height)
         prev_x, prev_height = x, height
+        prev_inview = inview
 
+    print("rendering...")
     casioplot.show_screen()
     print(on_screen_coords)
     player_rot += 0.075

@@ -7,7 +7,7 @@ contents = [[0 for j in range(WIDTH)] for i in range(HEIGHT)]
 
 def set_pixel(x, y):
     try:
-        contents[y][x] = 1
+        if x >= 0 and y >= 0: contents[y][x] = 1
     except:
         pass
 
